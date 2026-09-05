@@ -15,14 +15,6 @@
   <meta name="apple-mobile-web-app-title" content="Rest. Comunitário">
   <link rel="apple-touch-icon" href="icon-192.png">
 
-  <!--
-    Redirecionamento imediato pro Web App do Apps Script.
-    Não usamos mais <iframe> porque o Google bloqueia (X-Frame-Options)
-    embutir páginas de Web App dentro de sites de fora do Google.
-    Navegando direto (em vez de embutir), esse bloqueio não existe.
-  -->
-  <meta http-equiv="refresh" content="0; url=https://script.google.com/macros/s/AKfycbw---Gm-xTRAaGV_4puXUrhH5KApdMHzwoa8HdiCgdHeoZZ3u2LqmAdoBjOIiMepcCR/exec">
-
   <style>
     html, body {
       margin: 0;
@@ -43,11 +35,23 @@
   Carregando...
 
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
+    var URL_DO_WEBAPP = "https://script.google.com/macros/s/AKfycbw---Gm-xTRAaGV_4puXUrhH5KApdMHzwoa8HdiCgdHeoZZ3u2LqmAdoBjOIiMepcCR/exec";
+
+    function irParaOApp() {
+      window.location.replace(URL_DO_WEBAPP);
     }
-    // Redundância ao <meta refresh> acima, caso o navegador demore a processá-lo
-    window.location.replace("https://script.google.com/macros/s/AKfycbw---Gm-xTRAaGV_4puXUrhH5KApdMHzwoa8HdiCgdHeoZZ3u2LqmAdoBjOIiMepcCR/exec");
+
+    // Sem <meta refresh>: registramos o Service Worker e só navegamos
+    // DEPOIS que o registro terminar (ou falhar). Isso garante que o
+    // Chrome reconheça a página como PWA instalável de verdade, e não
+    // apenas crie um atalho comum que abre dentro do navegador.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .catch(function () { /* segue mesmo se o SW falhar ao registrar */ })
+        .finally(irParaOApp);
+    } else {
+      irParaOApp();
+    }
   </script>
 </body>
 </html>
